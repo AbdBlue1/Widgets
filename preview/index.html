@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TfL Station Widget Preview</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .widget-container {
+            perspective: 1000px;
+        }
+
+        .widget {
+            background: #000000;
+            border-radius: 20px;
+            padding: 16px;
+            width: 360px;
+            min-height: 160px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .station-name {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            font-weight: bold;
+            color: #FFD700;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .arrival-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+        }
+
+        .arrival-row:not(:last-child) {
+            border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .line-name {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            font-weight: bold;
+            color: #FFD700;
+            width: 80px;
+            flex-shrink: 0;
+        }
+
+        .destination {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            font-weight: 500;
+            color: #FFFFFF;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .time {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            font-weight: bold;
+            color: #FFD700;
+            width: 60px;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .loading {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #FFD700;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .info {
+            text-align: center;
+            color: white;
+            margin-top: 30px;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .refresh-btn {
+            margin-top: 20px;
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .refresh-btn:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚇 TfL Station Widget Preview</h1>
+        <p>iOS Home Screen Widget Mockup</p>
+    </div>
+
+    <div class="widget-container">
+        <div class="widget" id="widget">
+            <div class="loading">LOADING...</div>
+        </div>
+    </div>
+
+    <button class="refresh-btn" onclick="loadArrivals()">🔄 Refresh (Random Station)</button>
+
+    <div class="info">
+        This is a preview of the iOS widget appearance.<br>
+        The actual widget fetches live data from TfL API.
+    </div>
+
+    <script>
+        const stations = [
+            { id: '940GZZLUKSX', name: "KING'S CROSS ST. PANCRAS" },
+            { id: '940GZZLULVT', name: 'LIVERPOOL STREET' },
+            { id: '940GZZLUOXC', name: 'OXFORD CIRCUS' },
+            { id: '940GZZLUBST', name: 'BAKER STREET' },
+            { id: '940GZZLUVIC', name: 'VICTORIA' },
+            { id: '940GZZLUPAC', name: 'PICCADILLY CIRCUS' },
+            { id: '940GZZLUWSM', name: 'WESTMINSTER' },
+            { id: '940GZZLUBND', name: 'BOND STREET' }
+        ];
+
+        function getRandomStation() {
+            return stations[Math.floor(Math.random() * stations.length)];
+        }
+
+        async function loadArrivals() {
+            const widget = document.getElementById('widget');
+            widget.innerHTML = '<div class="loading">LOADING...</div>';
+
+            const station = getRandomStation();
+
+            try {
+                const response = await fetch(`https://api.tfl.gov.uk/StopPoint/${station.id}/Arrivals`);
+                const data = await response.json();
+
+                const arrivals = data
+                    .filter(a => a.timeToStation > 0)
+                    .sort((a, b) => a.timeToStation - b.timeToStation)
+                    .slice(0, 4);
+
+                if (arrivals.length === 0) {
+                    widget.innerHTML = `
+                        <div class="station-name">${station.name}</div>
+                        <div class="loading">NO TRAINS</div>
+                    `;
+                    return;
+                }
+
+                let html = `<div class="station-name">${station.name}</div>`;
+                
+                arrivals.forEach(arrival => {
+                    const minutes = Math.floor(arrival.timeToStation / 60);
+                    html += `
+                        <div class="arrival-row">
+                            <div class="line-name">${arrival.lineName.toUpperCase()}</div>
+                            <div class="destination">${arrival.destinationName.toUpperCase()}</div>
+                            <div class="time">${minutes} MIN</div>
+                        </div>
+                    `;
+                });
+
+                widget.innerHTML = html;
+            } catch (error) {
+                widget.innerHTML = `
+                    <div class="station-name">${station.name}</div>
+                    <div class="loading">NO DATA</div>
+                `;
+            }
+        }
+
+        loadArrivals();
+    </script>
+</body>
+</html>
