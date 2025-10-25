@@ -1,117 +1,147 @@
-# TfL Station Arrivals Widget
+# UK Transport iOS Widgets
 
-A minimal iOS app with a SwiftUI widget that displays live train arrivals at random London Underground stations in a simple station departure board style.
+Two separate iOS widget applications displaying live transport information in a classic station board style.
 
 ## Overview
 
-This is an iOS application built with SwiftUI and WidgetKit that shows real-time train arrivals from Transport for London (TfL) Underground stations. The widget displays arrival information in a classic station board aesthetic with a black background and yellow/white text.
+This repository contains two complete iOS applications, each with a home screen widget:
+
+1. **TfL Station Arrivals Widget** - London Underground live arrivals
+2. **National Rail Departures Widget** - UK train departures
+
+Both share the same simple station board aesthetic: black background with yellow/white monospaced text, mimicking real UK transport departure boards.
 
 ## Project Structure
 
 ```
-TfLStationWidget/
-├── Shared/
-│   ├── Models.swift          # Data models (Arrival, Station)
-│   └── TfLService.swift      # TfL API service for fetching arrivals
-├── TfLStationApp/
-│   ├── TfLStationApp.swift   # Main app entry point
-│   └── ContentView.swift     # Main app view
-└── TfLStationWidget/
-    ├── TfLStationWidget.swift # Widget implementation with TimelineProvider
-    └── Info.plist            # Widget extension configuration
+.
+├── TfL-Widget/                 # London Underground widget app
+│   ├── Shared/
+│   │   ├── Models.swift        # Data models for TfL arrivals
+│   │   └── TfLService.swift    # TfL API service
+│   ├── TfLStationApp/
+│   │   ├── TfLStationApp.swift # App entry point
+│   │   └── ContentView.swift   # Main app view
+│   ├── TfLStationWidget/
+│   │   ├── TfLStationWidget.swift # Widget with TimelineProvider
+│   │   └── Info.plist          # Widget configuration
+│   └── Package.swift
+│
+├── NationalRail-Widget/        # National Rail widget app
+│   ├── Shared/
+│   │   ├── Models.swift        # Data models for departures
+│   │   └── NationalRailService.swift # National Rail API service
+│   ├── NationalRailApp/
+│   │   ├── NationalRailApp.swift # App entry point
+│   │   └── ContentView.swift   # Main app view
+│   ├── NationalRailWidget/
+│   │   ├── NationalRailWidget.swift # Widget with TimelineProvider
+│   │   └── Info.plist          # Widget configuration
+│   └── Package.swift
+│
+└── preview/                    # Web-based previews
+    ├── index.html              # TfL widget preview
+    └── nationalrail.html       # National Rail preview
 ```
 
-## Features
+## Features (Both Apps)
 
-- **Simple Station Board UI**: Black background with yellow/white monospaced text for authentic station board look
-- **Live Train Arrivals**: Fetches real-time data from TfL API showing line name, destination, and minutes until arrival
-- **Random Station Selection**: Randomly selects from 8 popular London Underground stations
-- **Auto-refresh**: Widget updates every 15 minutes using TimelineProvider
-- **Error Handling**: Gracefully displays "No data" when API calls fail
-- **Native Implementation**: Uses only native URLSession, no external dependencies
+- **Station Board Design**: Black background with yellow/white monospaced text
+- **Live Data**: Real-time API integration
+- **Random Stations**: Each refresh picks from 8 popular stations
+- **Auto-refresh**: Widgets update every 15 minutes via TimelineProvider
+- **Error Handling**: Graceful fallback showing "No data" when API fails
+- **Native Implementation**: SwiftUI and WidgetKit only, no external dependencies
+- **iOS 17+**: Modern Swift features with async/await
 
-## Popular Stations Included
+## TfL Widget Details
 
-- King's Cross St. Pancras
-- Liverpool Street
-- Oxford Circus
-- Baker Street
-- Victoria
-- Piccadilly Circus
-- Westminster
-- Bond Street
+**API**: Transport for London Unified API  
+**Endpoint**: `https://api.tfl.gov.uk/StopPoint/{stationId}/Arrivals`  
+**Authentication**: None required  
+**Data Displayed**:
+- Station name
+- Line name (e.g., Central, Victoria)
+- Destination
+- Minutes until arrival
+
+**Stations**: King's Cross, Liverpool Street, Oxford Circus, Baker Street, Victoria, Piccadilly Circus, Westminster, Bond Street
+
+## National Rail Widget Details
+
+**API**: National Rail via Huxley REST proxy  
+**Endpoint**: `https://huxley2.azurewebsites.net/departures/{crs}/10`  
+**Authentication**: National Rail API token required (free registration)  
+**Data Displayed**:
+- Station name
+- Scheduled departure time
+- Destination
+- Platform number
+- Status (On time / delayed time)
+
+**Stations**: King's Cross, Paddington, Euston, Victoria, Waterloo, London Bridge, Liverpool Street, St Pancras
 
 ## Requirements
 
 - iOS 17.0+
 - Xcode 15.0+
 - macOS for development
+- National Rail API token (for National Rail widget only)
 
-## How to Build and Run
+## How to Build
 
-⚠️ **Important**: This is an iOS application that requires Xcode on macOS to build and run.
+⚠️ **Important**: These are iOS applications that require Xcode on macOS.
 
-### Setup in Xcode
+### TfL Widget
+1. Open Xcode, create new iOS App with Widget Extension
+2. Copy files from `TfL-Widget/` to your Xcode project
+3. Ensure shared files are added to both app and widget targets
+4. Build and run
 
-1. **Open in Xcode**:
-   - Download all files to your Mac
-   - Open Xcode and create a new iOS App project
-   - Set the app name to "TfLStationWidget" and choose SwiftUI as the interface
-   - Add a Widget Extension target (File → New → Target → Widget Extension)
-   - Name it "TfLStationWidget"
+### National Rail Widget
+1. Register for API token at https://realtime.nationalrail.co.uk/OpenLDBWSRegistration
+2. Open Xcode, create new iOS App with Widget Extension
+3. Copy files from `NationalRail-Widget/` to your Xcode project
+4. Add API token to environment variables in Xcode scheme
+5. Build and run
 
-2. **Add the Files**:
-   - Copy `Shared/Models.swift` and `Shared/TfLService.swift` to your project (add to both targets)
-   - Replace the auto-generated ContentView.swift with `TfLStationApp/ContentView.swift`
-   - Replace the auto-generated widget file with `TfLStationWidget/TfLStationWidget.swift`
-   - Ensure both files are added to the Widget Extension target
+See individual README files for detailed instructions.
 
-3. **Configure Targets**:
-   - Main app target: Include TfLStationApp.swift, ContentView.swift, Models.swift, TfLService.swift
-   - Widget Extension target: Include TfLStationWidget.swift, Models.swift, TfLService.swift
-   - Set deployment target to iOS 17.0+ for both targets
+## Web Previews
 
-4. **Build and Run**:
-   - Select your device or simulator
-   - Build and run the app (⌘R)
-   - Long-press on the home screen to add the widget
-   - Select "TfL Station Arrivals" widget
+Both widgets have web-based previews that fetch real live data:
+- `preview/index.html` - TfL widget preview
+- `preview/nationalrail.html` - National Rail widget preview
 
-## API Information
-
-The app uses the TfL Unified API to fetch live arrival data:
-- **Endpoint**: `https://api.tfl.gov.uk/StopPoint/{stationId}/Arrivals`
-- **No API key required** for basic usage
-- **Rate limits**: Reasonable for personal use; consider registering for an API key for production
-
-## Widget Design
-
-The widget follows a simple station departure board aesthetic:
-- **Background**: Solid black (#000000)
-- **Station name**: Yellow, bold, uppercase, monospaced font
-- **Line names**: Yellow text (left column)
-- **Destinations**: White text (middle, truncated if needed)
-- **Arrival times**: Yellow text showing minutes (right column)
-- **Dividers**: Subtle yellow dividers between rows
+These demonstrate the exact appearance and functionality of the iOS widgets.
 
 ## Recent Changes
 
-- 2025-01-25: Initial project creation
-- Implemented TfL API integration for station arrivals
-- Created station board styled widget with black/yellow theme
-- Added random station selection from 8 popular Underground stations
-- Configured 15-minute refresh interval
+- 2025-10-25: Created separate projects for TfL and National Rail widgets
+- Both apps use identical station board UI design
+- TfL widget uses random Underground stations
+- National Rail widget uses random major UK train stations
+- Added web previews for both widgets
+- Configured 15-minute refresh intervals for both
 
 ## User Preferences
 
-- Simple, clean design without unnecessary complexity
-- Station board aesthetic (not over-designed)
-- Focus on readability and authentic look
+- Keep projects completely separate (not combined)
+- Use simple station board style without complexity
+- Black background with yellow/white text
+- Monospaced fonts for authentic look
+- Focus on readability
 
 ## Technical Notes
 
 - Uses Swift 5.8+ language features
-- Async/await for API calls
+- Async/await for all API calls
 - Codable for JSON parsing
-- TimelineProvider for widget refresh scheduling
-- Error handling with try/catch and graceful fallbacks
+- TimelineProvider for automatic widget refresh
+- Environment variables for National Rail API token security
+- Error handling with try/catch and graceful UI fallbacks
+
+## API Security
+
+- **TfL**: Public API, no authentication needed
+- **National Rail**: API token stored in environment variables, never hardcoded in source
